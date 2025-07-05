@@ -49,7 +49,7 @@ class FileRotator:
         allFilePaths.sort(reverse=True)
         delFilePaths.sort(reverse=True)
         
-        if len(allFilePaths) < minCopies:
+        if len(allFilePaths) < self._minCopies:
             self._logger.warning(f'Unable to rotate "{self._fileNamePrepend}" files. Only found {len(allFilePaths)} files but at least {self._minCopies} must exist before they can be rotated.')
             return self
 

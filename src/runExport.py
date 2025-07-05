@@ -63,18 +63,16 @@ def main():
         bwCmdAgent.login()
         bwCmdAgent.unlock()
         exportFilePath = exportRotator.createNewFilePath()
-        bwCmdAgent.export(exportFilePath)
+        exportData = bwCmdAgent.export(exportFilePath)
         bwCmdAgent.logout()
         
         # delete old files
         exportRotator.rotateFiles()
 
         # validate the export
-        with open(exportFilePath, 'r') as f:
-            data = json.load(f)
-            if data.get('encrypted') or not data.get('items'):
-                raise ValueError(f'Validation failed. Invalid export file structure. exportFilePath: {exportFilePath}')
-            logger.info(f'Success! Exported {len(data['items'])} items')
+        if exportData.get('encrypted') or not exportData.get('items'):
+            raise ValueError(f'Validation failed. Invalid export file structure. exportFilePath: {exportFilePath}')
+        logger.info(f'Success! Exported {len(exportData['items'])} items')
 
     except Exception as e:
         logger.error(f'Caught exception and reporting it to GlitchTip: {e}')

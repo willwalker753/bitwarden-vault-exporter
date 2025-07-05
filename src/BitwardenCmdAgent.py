@@ -17,19 +17,11 @@ class BitwardenCmdAgent:
         self._env = os.environ.copy()
         self._env = {
             **os.environ.copy(),
-            'BW_CLIENT_ID': bwClientId,
-            'BW_CLIENTSECRET': bwClientSecret, # yes the missing underscore is intentional. that is what bw expects
+            'BW_CLIENTID': bwClientId, # yes the missing underscore is intentional. that is what bw expects
+            'BW_CLIENTSECRET': bwClientSecret, 
             'BW_PASSWORD': bwPassword,
         }
 
-    def logout(self) -> 'BitwardenCmdAgent':
-        self._logger.info('Running bitwarden logout command')
-        self._run_cmd([
-            self._bwCliPath, 
-            'logout'
-        ], capture_output=False)
-        return self
-    
     def login(self) -> 'BitwardenCmdAgent':
         self._logger.info('Running bitwarden login command')
         loginRes = self._run_cmd([
@@ -42,8 +34,20 @@ class BitwardenCmdAgent:
         self._env['BW_SESSION'] = sessionKey
         return self
 
+    def logout(self) -> 'BitwardenCmdAgent':
+        self._logger.info('Running bitwarden logout command')
+        self._enforce_auth('logout')
+        self._run_cmd([
+            self._bwCliPath, 
+            'logout'
+        ], capture_output=False)
+        if 'BW_SESSION' in self._env:
+            del self._env['BW_SESSION']
+        return self
+
     def unlock(self) -> 'BitwardenCmdAgent':
         self._logger.info('Running bitwarden unlock command')
+        self._enforce_auth('unlock')
         unlockRes = self._run_cmd([
             self._bwCliPath, 
             'unlock',
@@ -55,6 +59,7 @@ class BitwardenCmdAgent:
 
     def export(self, targetJsonFilePath) -> dict:
         self._logger.info('Running bitwarden export command')
+        self._enforce_auth('export')
         self._run_cmd([
             self._bwCliPath, 
             'export',
@@ -64,6 +69,10 @@ class BitwardenCmdAgent:
         with open(targetJsonFilePath, mode='r') as targetF:
             data = json.load(targetF)
         return data
+
+    def _enforce_auth(self, commandName):
+        if not 'BW_SESSION' in self._env:
+            raise Exception(f'Must login before running the {commandName} command')
 
     def _run_cmd(self, command:List[str], capture_output:bool):
         try:
