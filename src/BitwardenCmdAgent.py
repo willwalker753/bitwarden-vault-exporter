@@ -66,6 +66,7 @@ class BitwardenCmdAgent:
             '--format', 'json',
             '--output', targetJsonFilePath
         ], capture_output=False)
+        os.chmod(targetJsonFilePath, 0o666) # set file permissions to 666
         with open(targetJsonFilePath, mode='r') as targetF:
             data = json.load(targetF)
         return data
