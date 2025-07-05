@@ -1,3 +1,5 @@
+src/bw-linux-2025.6.1/bw
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
