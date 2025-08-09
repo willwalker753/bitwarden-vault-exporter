@@ -40,7 +40,7 @@ class FileRotator:
             nowDt = datetime.datetime.now(datetime.UTC)
             fileDtRaw = fileName.replace(self._fileNamePrepend, '').replace(self._fileExtension, '').strip('-').strip('.')
             fileDt = datetime.datetime.strptime(fileDtRaw, self._dtFormat)
-            seconds = (nowDt - fileDt).seconds
+            seconds = math.floor((nowDt - fileDt).total_seconds())
             hours = math.floor(seconds / 60 / 60)
             if hours >= self._ttlHours:
                 delFilePaths.append(filePath)
@@ -64,7 +64,7 @@ class FileRotator:
             fileCountToNotDel = self._minCopies - fileCountRemaining
             delFilePaths = delFilePaths[fileCountToNotDel:]
 
-        for i, delFilePath in enumerate(delFilPaths):
+        for i, delFilePath in enumerate(delFilePaths):
             self._logger.info(f'[{i}/{len(delFilePaths)}] Deleting old file that is past the ttlHours value of {self._ttlHours}. filePath: {delFilePath}')
             os.remove(delFilePath)
         return self
