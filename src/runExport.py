@@ -60,7 +60,7 @@ def main():
         )
 
         logger.info('Starting Bitwarden backup process')            
-        bwCmdAgent.login()
+        bwCmdAgent.safeLogin()
         bwCmdAgent.unlock()
         exportFilePath = exportRotator.createNewFilePath()
         exportData = bwCmdAgent.export(exportFilePath)

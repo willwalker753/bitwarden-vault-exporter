@@ -17,30 +17,44 @@ class BitwardenCmdAgent:
         self._env = os.environ.copy()
         self._env = {
             **os.environ.copy(),
-            'BW_CLIENTID': bwClientId, # yes the missing underscore is intentional. that is what bw expects
+            'BW_CLIENTID': bwClientId, # the missing underscore is intentional. that is what bw expects
             'BW_CLIENTSECRET': bwClientSecret, 
             'BW_PASSWORD': bwPassword,
         }
 
+    def safeLogin(self) -> 'BitwardenCmdAgent':
+        try:
+            self.login()
+            return self
+        except subprocess.CalledProcessError as e:
+            # logout before logging in if there is already a session
+            if ('already logged in' in e.stderr.strip().lower()):
+                self.logout()
+                self.login()
+                return self
+            raise e
+
     def login(self) -> 'BitwardenCmdAgent':
         self._logger.info('Running bitwarden login command')
-        loginRes = self._run_cmd([
+        loginOutput = self._run_cmd([
             self._bwCliPath, 
             'login', 
             '--apikey', 
             '--raw'
         ], capture_output=True)
-        sessionKey = loginRes.strip()
+        print(f'Login cmd output: {loginOutput}')
+        sessionKey = loginOutput.strip()
         self._env['BW_SESSION'] = sessionKey
         return self
 
     def logout(self) -> 'BitwardenCmdAgent':
         self._logger.info('Running bitwarden logout command')
         self._enforce_auth('logout')
-        self._run_cmd([
+        logoutOutput = self._run_cmd([
             self._bwCliPath, 
             'logout'
-        ], capture_output=False)
+        ], capture_output=True)
+        print(f'Logout cmd output: {logoutOutput}')
         if 'BW_SESSION' in self._env:
             del self._env['BW_SESSION']
         return self
@@ -48,24 +62,26 @@ class BitwardenCmdAgent:
     def unlock(self) -> 'BitwardenCmdAgent':
         self._logger.info('Running bitwarden unlock command')
         self._enforce_auth('unlock')
-        unlockRes = self._run_cmd([
+        unlockOutput = self._run_cmd([
             self._bwCliPath, 
             'unlock',
             '--passwordenv', 'BW_PASSWORD',
             '--raw'
         ], capture_output=True)
-        self._env['BW_SESSION'] = unlockRes.strip()
+        print(f'Unlock cmd output: {unlockOutput}')
+        self._env['BW_SESSION'] = unlockOutput.strip()
         return self
 
     def export(self, targetJsonFilePath) -> dict:
         self._logger.info('Running bitwarden export command')
         self._enforce_auth('export')
-        self._run_cmd([
+        exportOutput = self._run_cmd([
             self._bwCliPath, 
             'export',
             '--format', 'json',
             '--output', targetJsonFilePath
-        ], capture_output=False)
+        ], capture_output=True)
+        print(f'Export cmd output: {exportOutput}')
         os.chmod(targetJsonFilePath, 0o666) # set file permissions to 666
         with open(targetJsonFilePath, mode='r') as targetF:
             data = json.load(targetF)

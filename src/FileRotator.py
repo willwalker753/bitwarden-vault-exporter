@@ -65,6 +65,6 @@ class FileRotator:
             delFilePaths = delFilePaths[fileCountToNotDel:]
 
         for i, delFilePath in enumerate(delFilePaths):
-            self._logger.info(f'[{i}/{len(delFilePaths)}] Deleting old file that is past the ttlHours value of {self._ttlHours}. filePath: {delFilePath}')
+            self._logger.info(f'[{i+1}/{len(delFilePaths)}] Deleting old file that is past the ttlHours value of {self._ttlHours}. filePath: {delFilePath}')
             os.remove(delFilePath)
         return self
