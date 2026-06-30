@@ -11,4 +11,6 @@ COPY src .
 RUN chmod +x /code/src/bw-linux-2025.6.1/bw
 ENV BW_CLI_PATH=/code/src/bw-linux-2025.6.1/bw
 
+ENV PYTHONUNBUFFERED=1
+
 CMD [ "python", "runExport.py" ]
