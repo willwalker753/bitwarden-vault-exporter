@@ -49,7 +49,7 @@ class BitwardenCmdAgent:
 
     def logout(self) -> 'BitwardenCmdAgent':
         self._logger.info('Running bitwarden logout command')
-        self._enforce_auth('logout')
+        # self._enforce_auth('logout')
         logoutOutput = self._run_cmd([
             self._bwCliPath, 
             'logout'
